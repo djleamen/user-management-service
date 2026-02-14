@@ -2,7 +2,16 @@ const jwt = require('jsonwebtoken');
 const config = require('./server');
 
 /**
- * JWT utility functions for token generation and verification
+ * JWT (JSON Web Token) Utility Module
+ * 
+ * Provides functions for generating and verifying JWT tokens used for authentication.
+ * 
+ * Token Types:
+ * - Access Token: Short-lived token for API authentication (default: 24h)
+ * - Refresh Token: Long-lived token for obtaining new access tokens (default: 7d)
+ * 
+ * All tokens are signed with the JWT secret and include an issuer claim
+ * for additional validation.
  */
 const jwtConfig = {
   /**

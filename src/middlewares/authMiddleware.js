@@ -4,30 +4,52 @@ const User = require('../models/userModel');
 const logger = require('../utils/logger');
 
 /**
- * Authentication Middleware
- * Verifies JWT tokens and authorizes users based on roles
+ * Authentication & Authorization Middleware
+ * 
+ * Provides middleware functions for protecting routes and enforcing access control.
+ * 
+ * Authentication Flow:
+ * 1. Extract token from Authorization header (Bearer scheme)
+ * 2. Verify token signature and expiration
+ * 3. Verify user still exists and is active
+ * 4. Attach user information to request object
+ * 
+ * Authorization checks are role-based (student/instructor/admin).
  */
 const authMiddleware = {
   /**
-   * Verify JWT token and attach user to request
+   * Authenticate User
+   * 
+   * Verifies JWT token and attaches user info to request.
+   * Required for all protected routes.
+   * 
+   * Expected header format: Authorization: Bearer <token>
+   * 
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   * @returns {void} Calls next() on success, sends 401 on failure
    */
   authenticate: async (req, res, next) => {
     try {
-      // Get token from header
+      // Extract Authorization header
       const authHeader = req.headers.authorization;
 
+      // Verify Bearer scheme is used
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json(
           formatErrorResponse('Access denied. No token provided.')
         );
       }
 
-      const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+      // Extract token (remove 'Bearer ' prefix)
+      const token = authHeader.substring(7);
 
-      // Verify token
+      // Verify token signature and expiration
       const decoded = jwtConfig.verifyToken(token);
 
-      // Check if user still exists and is active
+      // Security check: ensure user still exists and account is active
+      // (handles cases where user was deleted or deactivated after token was issued)
       const user = await User.findById(decoded.userId);
 
       if (!user || !user.isActive) {

@@ -3,22 +3,49 @@ const jwtConfig = require('../config/jwt');
 const logger = require('../utils/logger');
 
 /**
- * User Service
- * Contains business logic for user management operations
+ * User Service Layer
+ * 
+ * Contains all business logic for user management operations.
+ * Separates business logic from HTTP concerns (handled by controllers).
+ * 
+ * Responsibilities:
+ * - Database operations (CRUD)
+ * - Business rule enforcement
+ * - Token generation and validation
+ * - Password management
+ * - User authentication logic
+ * 
+ * All methods throw errors that are caught and formatted by controllers.
  */
 const userService = {
   /**
-   * Register a new user
+   * Register a New User
+   * 
+   * Creates a new user account with proper validation and token generation.
+   * 
+   * Process:
+   * 1. Check for existing email/username (prevent duplicates)
+   * 2. Create user document (password auto-hashed by pre-save hook)
+   * 3. Generate access and refresh tokens
+   * 4. Save refresh token to user document
+   * 5. Return sanitized user data with tokens
+   * 
    * @param {Object} userData - User registration data
-   * @returns {Object} User data and tokens
+   * @param {string} userData.username - Unique username
+   * @param {string} userData.email - Unique email address
+   * @param {string} userData.password - Plain text password (will be hashed)
+   * @param {string} [userData.role] - User role (defaults to 'student')
+   * @returns {Promise<Object>} User data and authentication tokens
+   * @throws {Error} If email or username already exists
    */
   registerUser: async (userData) => {
     try {
-      // Check if user already exists
+      // Check for duplicate email or username in a single query
       const existingUser = await User.findOne({
         $or: [{ email: userData.email }, { username: userData.username }],
       });
 
+      // Provide specific error messages for better UX
       if (existingUser) {
         if (existingUser.email === userData.email) {
           throw new Error('Email already registered');
@@ -28,11 +55,11 @@ const userService = {
         }
       }
 
-      // Create new user
+      // Create new user (password will be hashed by pre-save middleware)
       const user = new User(userData);
       await user.save();
 
-      // Generate tokens
+      // Generate JWT tokens for immediate login
       const accessToken = jwtConfig.generateAccessToken({
         userId: user._id,
         email: user.email,

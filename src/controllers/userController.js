@@ -4,18 +4,43 @@ const logger = require('../utils/logger');
 
 /**
  * User Controller
- * Handles HTTP requests for user-related operations
+ * 
+ * Handles HTTP request/response cycle for all user-related operations.
+ * 
+ * Responsibilities:
+ * - Request validation (basic input checking)
+ * - Calling appropriate service layer methods
+ * - Response formatting (success/error)
+ * - HTTP status code management
+ * - Request logging
+ * 
+ * Business logic is delegated to userService.
+ * All routes are wrapped with asyncHandler middleware to catch errors.
  */
 const userController = {
   /**
-   * Register a new user
+   * Register a New User
+   * 
+   * Creates a new user account with the provided credentials.
+   * Automatically generates access and refresh tokens upon successful registration.
+   * 
    * @route POST /api/users/register
+   * @access Public
+   * @param {Object} req.body - Registration data
+   * @param {string} req.body.username - Unique username (3-30 chars)
+   * @param {string} req.body.email - Unique email address
+   * @param {string} req.body.password - Password (min 8 chars)
+   * @param {string} [req.body.firstName] - Optional first name
+   * @param {string} [req.body.lastName] - Optional last name
+   * @param {string} [req.body.role] - Optional role (student/instructor/admin)
+   * @returns {Object} 201 - User data with tokens
+   * @returns {Object} 400 - Validation error or duplicate user
    */
   register: async (req, res) => {
     try {
       const { username, email, password, firstName, lastName, role } = req.body;
 
-      // Validate required fields
+      // Validate required fields (schema validation happens in service layer)
       if (!username || !email || !password) {
         return res.status(400).json(
           formatErrorResponse('Username, email, and password are required')
@@ -42,8 +67,18 @@ const userController = {
   },
 
   /**
-   * Login user
+   * User Login
+   * 
+   * Authenticates a user and returns access/refresh tokens.
+   * Updates lastLogin timestamp on successful authentication.
+   * 
    * @route POST /api/users/login
+   * @access Public
+   * @param {Object} req.body - Login credentials
+   * @param {string} req.body.email - User's email
+   * @param {string} req.body.password - User's password
+   * @returns {Object} 200 - User data with tokens
+   * @returns {Object} 401 - Invalid credentials
    */
   login: async (req, res) => {
     try {
@@ -90,19 +125,27 @@ const userController = {
   },
 
   /**
-   * Update user profile
+   * Update User Profile
+   * 
+   * Updates non-sensitive user profile fields.
+   * Sensitive fields (password, email, role) must use dedicated endpoints.
+   * 
    * @route PUT /api/users/profile
+   * @access Private
+   * @param {Object} req.body - Fields to update
+   * @returns {Object} 200 - Updated user data
+   * @returns {Object} 400 - Validation error
    */
   updateProfile: async (req, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user.id; // From authentication middleware
       const updates = req.body;
 
-      // Prevent updating sensitive fields
-      delete updates.password;
-      delete updates.email;
-      delete updates.role;
-      delete updates.refreshToken;
+      // Security: prevent updating sensitive fields through this endpoint
+      delete updates.password;     // Use /change-password instead
+      delete updates.email;        // Email changes require verification
+      delete updates.role;         // Only admins can change roles
+      delete updates.refreshToken; // Internal field, not user-modifiable
 
       const updatedUser = await userService.updateUser(userId, updates);
 
