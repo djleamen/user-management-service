@@ -11,6 +11,12 @@ const config = {
   
   // Database
   mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/learning-platform',
+  dbMaxPoolSize: parseInt(process.env.DB_MAX_POOL_SIZE) || 10,
+  dbMinPoolSize: parseInt(process.env.DB_MIN_POOL_SIZE) || 5,
+  dbServerSelectionTimeoutMs: parseInt(process.env.DB_SERVER_SELECTION_TIMEOUT_MS) || 30000,
+  dbSocketTimeoutMs: parseInt(process.env.DB_SOCKET_TIMEOUT_MS) || 45000,
+  dbMaxRetries: parseInt(process.env.DB_MAX_RETRIES) || 5,
+  dbRetryDelayMs: parseInt(process.env.DB_RETRY_DELAY_MS) || 5000,
   
   // JWT settings
   jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
