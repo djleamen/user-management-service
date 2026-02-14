@@ -1,0 +1,99 @@
+# ===================================
+# Docker Compose - Production Override
+# ===================================
+#
+# Production-specific configurations that override docker-compose.yml
+#
+# Features for Production:
+# - Strict resource limits
+# - Security hardening
+# - External configuration via environment variables
+# - No volume mounts (immutable containers)
+# - Restart policies
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# IMPORTANT: Set these environment variables before deploying:
+#   - JWT_SECRET
+#   - MONGODB_ROOT_PASSWORD
+#   - MONGODB_APP_PASSWORD
+# ===================================
+
+version: '3.8'
+
+services:
+  # ===== MongoDB Production Configuration =====
+  mongodb:
+    # Use environment variables for sensitive data
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD:?MONGODB_ROOT_PASSWORD environment variable is required}
+    
+    # Don't expose MongoDB port to host in production
+    ports: []
+    
+    # Only expose port to other containers in the network
+    expose:
+      - "27017"
+    
+    # Stricter restart policy
+    restart: always
+    
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+  # ===== Application Production Configuration =====
+  app:
+    # Use environment variables for configuration
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: ${LOG_LEVEL:-warn}
+      
+      # Use environment variable for sensitive connection string
+      MONGODB_URI: ${MONGODB_URI:?MONGODB_URI environment variable is required}
+      
+      # Security: Require JWT_SECRET to be explicitly set
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET environment variable is required}
+      
+      # Production CORS - restrict to specific origins
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://yourdomain.com}
+      
+      # Stricter rate limiting
+      RATE_LIMIT_WINDOW_MS: 900000     # 15 minutes
+      RATE_LIMIT_MAX_REQUESTS: 50      # Reduced from 100
+    
+    # No volume mounts in production (immutable containers)
+    volumes: []
+    
+    # Stricter restart policy
+    restart: always
+    
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.5'
+          memory: 384M
+      
+      # Enable rolling updates (if using Docker Swarm)
+      update_config:
+        parallelism: 2
+        delay: 10s
+        order: start-first
+      
+      # Automatic restart on failure
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3

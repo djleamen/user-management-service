@@ -1,0 +1,171 @@
+# ===================================
+# Docker Compose Configuration
+# ===================================
+#
+# Orchestrates multiple containers for the User Management Service:
+# - app: Node.js application container
+# - mongodb: MongoDB database container
+#
+# Features:
+# - Named volumes for data persistence
+# - Health checks for service monitoring
+# - Network isolation between services
+# - Environment variable configuration
+# - Automatic restarts on failure
+# - Resource limits for production stability
+#
+# Usage:
+#   Development: docker-compose up
+#   Production:  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#   Stop:        docker-compose down
+#   Clean:       docker-compose down -v  (removes volumes)
+# ===================================
+
+version: '3.8'
+
+services:
+  # ===== MongoDB Database Service =====
+  mongodb:
+    image: mongo:7.0
+    container_name: user-management-mongo
+    restart: unless-stopped
+    
+    # Environment variables for MongoDB
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: learning-platform
+    
+    # Port mapping (host:container)
+    # Access MongoDB from host: mongodb://localhost:27017
+    ports:
+      - "27017:27017"
+    
+    # Data persistence using named volume
+    volumes:
+      - mongodb_data:/data/db           # Database files
+      - mongodb_config:/data/configdb   # Configuration files
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro  # Initialization script
+    
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # Health check - verifies MongoDB is ready
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    
+    networks:
+      - user-management-network
+
+  # ===== Node.js Application Service =====
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    
+    container_name: user-management-app
+    restart: unless-stopped
+    
+    # Wait for MongoDB to be healthy before starting
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    
+    # Environment variables for application
+    # Override these in production with .env file or environment-specific compose file
+    environment:
+      # Server Configuration
+      NODE_ENV: production
+      PORT: 3000
+      
+      # Database Configuration
+      # Using service name 'mongodb' as hostname (Docker DNS)
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017/learning-platform?authSource=admin
+      
+      # Database Connection Pool Settings
+      DB_MAX_POOL_SIZE: 10
+      DB_MIN_POOL_SIZE: 5
+      DB_SERVER_SELECTION_TIMEOUT_MS: 30000
+      DB_SOCKET_TIMEOUT_MS: 45000
+      DB_MAX_RETRIES: 5
+      DB_RETRY_DELAY_MS: 5000
+      
+      # JWT Configuration
+      # IMPORTANT: Change these in production!
+      JWT_SECRET: ${JWT_SECRET:-your-production-secret-change-this}
+      JWT_EXPIRATION: 24h
+      JWT_REFRESH_EXPIRATION: 7d
+      
+      # Security Settings
+      BCRYPT_SALT_ROUNDS: 12
+      
+      # Rate Limiting
+      RATE_LIMIT_WINDOW_MS: 900000      # 15 minutes
+      RATE_LIMIT_MAX_REQUESTS: 100
+      
+      # CORS Configuration
+      CORS_ORIGIN: "*"
+      
+      # Logging
+      LOG_LEVEL: info
+    
+    # Port mapping (host:container)
+    # Access API from host: http://localhost:3000
+    ports:
+      - "3000:3000"
+    
+    # Mount volumes for development (comment out in production)
+    # volumes:
+    #   - ./src:/app/src:ro              # Hot reload source code
+    #   - ./logs:/app/logs               # Persist logs to host
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    
+    # Health check - verifies application is responding
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    networks:
+      - user-management-network
+
+# ===== Named Volumes =====
+# Data persists even when containers are removed
+volumes:
+  mongodb_data:
+    driver: local
+    name: user-management-mongodb-data
+  
+  mongodb_config:
+    driver: local
+    name: user-management-mongodb-config
+
+# ===== Networks =====
+# Isolated network for service communication
+networks:
+  user-management-network:
+    driver: bridge
+    name: user-management-network

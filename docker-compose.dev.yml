@@ -1,0 +1,71 @@
+# ===================================
+# Docker Compose - Development Override
+# ===================================
+#
+# Development-specific configurations that override docker-compose.yml
+#
+# Features for Development:
+# - Hot reload with volume mounts
+# - Exposed debugging port
+# - Development environment variables
+# - More verbose logging
+# - No resource limits
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ===================================
+
+version: '3.8'
+
+services:
+  # ===== MongoDB Development Configuration =====
+  mongodb:
+    # Simpler setup for development
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+    
+    # Remove resource limits for development
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+
+  # ===== Application Development Configuration =====
+  app:
+    # Use development target (if defined in Dockerfile)
+    build:
+      target: production  # Can create a 'development' stage in Dockerfile if needed
+    
+    # Override environment for development
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+      
+      # Development MongoDB connection (simpler auth)
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017/learning-platform?authSource=admin
+      
+      # Development JWT secret (not secure, only for dev)
+      JWT_SECRET: dev-secret-key-not-for-production
+    
+    # Mount source code for hot reload
+    volumes:
+      - ./src:/app/src:ro              # Read-only source mount
+      - ./logs:/app/logs               # Persist logs to host
+      - /app/node_modules              # Prevent node_modules override
+    
+    # Expose debug port for Node.js inspector
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Node.js debugging port
+    
+    # Use nodemon for hot reload (if configured)
+    # command: npm run dev
+    
+    # Remove resource limits for development
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
