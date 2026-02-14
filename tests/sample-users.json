@@ -1,0 +1,92 @@
+[
+  {
+    "username": "john_smith",
+    "email": "john.smith@example.com",
+    "password": "SecurePass123!",
+    "firstName": "John",
+    "lastName": "Smith",
+    "role": "student",
+    "bio": "Passionate learner interested in web development and data science."
+  },
+  {
+    "username": "jane_doe",
+    "email": "jane.doe@example.com",
+    "password": "SecurePass123!",
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "role": "instructor",
+    "bio": "Experienced software engineer and instructor with 10 years in the industry."
+  },
+  {
+    "username": "mike_johnson",
+    "email": "mike.johnson@example.com",
+    "password": "SecurePass123!",
+    "firstName": "Mike",
+    "lastName": "Johnson",
+    "role": "student",
+    "bio": "Computer science student focusing on machine learning and AI."
+  },
+  {
+    "username": "sarah_williams",
+    "email": "sarah.williams@example.com",
+    "password": "SecurePass123!",
+    "firstName": "Sarah",
+    "lastName": "Williams",
+    "role": "instructor",
+    "bio": "Full-stack developer teaching modern web technologies."
+  },
+  {
+    "username": "admin_user",
+    "email": "admin@example.com",
+    "password": "AdminPass123!",
+    "firstName": "Admin",
+    "lastName": "User",
+    "role": "admin",
+    "bio": "Platform administrator"
+  },
+  {
+    "username": "david_brown",
+    "email": "david.brown@example.com",
+    "password": "SecurePass123!",
+    "firstName": "David",
+    "lastName": "Brown",
+    "role": "student",
+    "bio": "Aspiring data scientist learning Python and statistics."
+  },
+  {
+    "username": "emily_davis",
+    "email": "emily.davis@example.com",
+    "password": "SecurePass123!",
+    "firstName": "Emily",
+    "lastName": "Davis",
+    "role": "instructor",
+    "bio": "UX designer and frontend development instructor."
+  },
+  {
+    "username": "chris_wilson",
+    "email": "chris.wilson@example.com",
+    "password": "SecurePass123!",
+    "firstName": "Chris",
+    "lastName": "Wilson",
+    "role": "student",
+    "bio": "Learning cloud computing and DevOps practices."
+  },
+  {
+    "username": "lisa_martinez",
+    "email": "lisa.martinez@example.com",
+    "password": "SecurePass123!",
+    "firstName": "Lisa",
+    "lastName": "Martinez",
+    "role": "instructor",
+    "bio": "Database specialist teaching SQL and NoSQL databases."
+  },
+  {
+    "username": "robert_garcia",
+    "email": "robert.garcia@example.com",
+    "password": "SecurePass123!",
+    "firstName": "Robert",
+    "lastName": "Garcia",
+    "role": "student",
+    "bio": "Beginner in programming with interest in mobile app development."
+  }
+]

@@ -1,0 +1,29 @@
+djleamen@Mac user-management-service % curl -X POST -H "Content-Type: application/json" -d '{"username": "john_smith_1", "email": "johnsmith_1@example.com", "password": "Password1234!"}' http://localhost:3000/api/users/register
+
+{"success":false,"message":"Email already registered","timestamp":"2026-02-14T21:56:23.826Z"}%    
+djleamen@Mac user-management-service % curl -X POST -H "Content-Type: application/json" -d '{"email": "testuser_feb14@example.com", "password": "Password1234!"}' http://localhost:3000/api/users/login
+
+{"success":true,"message":"Login successful","data":{"user":{"id":"6990ef866aa0a04e133811d0","username":"test_user_feb14","email":"testuser_feb14@example.com","role":"student","profileImage":null,"isEmailVerified":false},"accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTkwZWY4NjZhYTBhMDRlMTMzODExZDAiLCJlbWFpbCI6InRlc3R1c2VyX2ZlYjE0QGV4YW1wbGUuY29tIiwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE3NzExMDYxOTEsImV4cCI6MTc3MTE5MjU5MSwiaXNzIjoibGVhcm5pbmctcGxhdGZvcm0ifQ.xlq-_xznEvmPbmJ4-4NQ6D4dQ7kTokmDitkpcIAoJEc","refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTkwZWY4NjZhYTBhMDRlMTMzODExZDAiLCJpYXQiOjE3NzExMDYxOTEsImV4cCI6MTc3MTcxMDk5MSwiaXNzIjoibGVhcm5pbmctcGxhdGZvcm0ifQ.FLLBgRy7fHZhpLixrAoIBeGQ4K0JCvNTcTJZE4wp2A4"},"timestamp":"2026-02-14T21:56:31.486Z"}%                                                                                           
+djleamen@Mac user-management-service % TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTkwZWY4NjZhYTBhMDRlMTMzODExZDAiLCJlbWFpbCI6InRlc3R1c2VyX2ZlYjE0QGV4YW1wbGUuY29tIiwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE3NzExMDYxODcsImV4cCI6MTc3MTE5MjU4NywiaXNzIjoibGVhcm5pbmctcGxhdGZvcm0ifQ.ybltxQQpk_FmrpvFtRzYMbmZCnI11V24LNj0RiLaNBA" && curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/users/profile
+
+{"success":true,"message":"Profile retrieved successfully","data":{"preferences":{"notifications":{"email":true,"push":true},"theme":"auto"},"_id":"6990ef866aa0a04e133811d0","username":"test_user_feb14","email":"testuser_feb14@example.com","role":"student","profileImage":null,"isActive":true,"isEmailVerified":false,"lastLogin":"2026-02-14T21:56:31.484Z","createdAt":"2026-02-14T21:56:22.167Z","updatedAt":"2026-02-14T21:56:31.485Z","__v":0,"fullName":"test_user_feb14","id":"6990ef866aa0a04e133811d0"},"timestamp":"2026-02-14T21:56:37.436Z"}%                                            
+djleamen@Mac user-management-service % mongosh learning-platform --quiet --eval "db.users.find({email: 'testuser_feb14@example.com'}, {password: 0, refreshToken: 0}).pretty()"
+[
+  {
+    _id: ObjectId('6990ef866aa0a04e133811d0'),
+    username: 'test_user_feb14',
+    email: 'testuser_feb14@example.com',
+    role: 'student',
+    profileImage: null,
+    isActive: true,
+    isEmailVerified: false,
+    lastLogin: ISODate('2026-02-14T21:56:31.484Z'),
+    preferences: { notifications: { email: true, push: true }, theme: 'auto' },
+    createdAt: ISODate('2026-02-14T21:56:22.167Z'),
+    updatedAt: ISODate('2026-02-14T21:56:31.485Z'),
+    __v: 0
+  }
+]
+djleamen@Mac user-management-service % mongosh learning-platform --quiet --eval "db.users.countDocuments()"
+
+13
