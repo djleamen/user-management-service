@@ -1,4 +1,4 @@
-# User Management Service
+# CodeCraftHub: User Management Service
 
 A robust and scalable User Management Service built with Node.js, Express, and MongoDB for a personalized online learning platform. This microservice handles user authentication, authorization, and profile management with enterprise-grade security features.
 
