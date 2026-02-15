@@ -2,6 +2,8 @@
 
 A robust and scalable User Management Service built with Node.js, Express, and MongoDB for a personalized online learning platform. This microservice handles user authentication, authorization, and profile management with enterprise-grade security features.
 
+**This is the final project for the course [Generative AI: Elevate your Software Development Career by IBM on Coursera](https://www.coursera.org/learn/generative-ai-elevate-software-development-career). This project was built using Generative AI.**
+
 ## Features
 
 - **User Authentication**: Secure registration and login using JWT tokens
